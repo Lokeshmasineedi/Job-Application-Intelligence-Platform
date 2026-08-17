@@ -1,55 +1,47 @@
 # Job Application Intelligence Platform
 
-An event-driven job application intelligence platform designed to automatically discover job applications, monitor recruitment communications, identify hiring-stage updates, maintain application timelines, and notify users about important recruitment events.
+An event-driven job application intelligence platform that automatically discovers job applications, monitors recruitment communications, identifies hiring-stage updates, maintains application timelines, and notifies users of important recruitment events with minimal manual intervention.
 
-## Problem
+## Overview
 
-Job seekers often apply to multiple companies through different job portals and company career pages. Tracking application status manually becomes difficult because updates can arrive through different channels such as email, application portals, and recruitment systems.
+Managing multiple job applications across company career pages, job portals, and email communications can become difficult because application updates are distributed across different platforms and inbox messages.
 
-This project aims to reduce that manual effort by automatically collecting application information and detecting subsequent recruitment updates.
+The Job Application Intelligence Platform centralizes this process by automatically detecting job applications and recruitment-related emails, extracting relevant information, matching communications to the appropriate application, identifying recruitment events, updating application status, and notifying users when meaningful changes occur.
+
+The system follows the principle:
+
+> **Record once, track automatically.**
+
+## Key Features
+
+* Automatic detection of job applications from supported job portals and application confirmation pages
+* Gmail integration for monitoring recruitment-related communications
+* Automatic extraction of company, role, job ID, job URL, application date, and related application information
+* Event-driven Gmail notification processing using Google Cloud Pub/Sub
+* AI-assisted classification of recruitment emails
+* Detection of application confirmations, shortlists, online assessments, interviews, offers, rejections, recruiter outreach, and scheduling updates
+* Intelligent matching of incoming emails with existing job applications
+* Application status and recruitment timeline management
+* Automatic dashboard updates
+* Real-time user notifications for important application events
+* Confidence-based handling of uncertain email classifications
+* Complete recruitment event history for each application
+* Secure user authentication and authorization
+* RESTful backend APIs
+* PostgreSQL-based application and event storage
+* Browser extension support for capturing application information from supported portals
 
 ## How It Works
 
-```text
-Job Portal / Career Page
-          │
-          ▼
-   Application Detection
-          │
-          ▼
-   Application Database
-          │
-          │
-          ├───────────────┐
-          │               │
-          ▼               ▼
-     Gmail API      Browser Extension
-          │               │
-          └───────┬───────┘
-                  ▼
-          Email Intelligence
-                  │
-          ▼
-        Event Classification
-                  │
-                  ▼
-        Application Matching
-                  │
-                  ▼
-        Status / Event Update
-                  │
-          ┌───────┴────────┐
-          ▼                ▼
-      Dashboard       Notifications
-```
+### 1. Connect Account
 
-## Core Features
+The user creates an account and connects their Gmail account using secure OAuth authentication.
 
-### Automatic Application Detection
+### 2. Apply for a Job
 
-Detect relevant application information from supported job portals, career pages, browser-based application flows, and recruitment confirmation emails.
+The user applies for a job through a supported job portal or company career page.
 
-Information may include:
+The system automatically captures available information such as:
 
 * Company
 * Job title
@@ -58,34 +50,36 @@ Information may include:
 * Application date
 * Application source
 
-### Recruitment Email Monitoring
+### 3. Detect Application Confirmation
 
-Connect the user's Gmail account and monitor relevant recruitment communications.
+When an application confirmation email is received, the Gmail integration detects the mailbox change and retrieves the relevant message.
 
-The system is intended to identify events such as:
+The system extracts useful information from the email and associates it with the corresponding application.
 
-* Application confirmation
-* Shortlisting
-* Online assessment
-* Assessment completion
-* Technical interview
-* HR interview
-* Final interview
+### 4. Analyze Recruitment Communication
+
+Incoming recruitment emails pass through an email intelligence pipeline that combines deterministic rules with AI-assisted classification.
+
+Possible recruitment events include:
+
+* Application Confirmation
+* Shortlisted
+* Online Assessment
+* Assessment Completed
+* Technical Interview
+* HR Interview
+* Final Interview
 * Offer
 * Rejection
-* Recruiter communication
-* Interview scheduling
+* Recruiter Outreach
+* Interview Scheduling
 
-### AI-Assisted Email Intelligence
+### 5. Match Email With Application
 
-Use a combination of deterministic rules and AI-based classification to understand recruitment emails and identify the relevant hiring event.
-
-### Application Matching
-
-Match incoming recruitment emails to the correct job application using signals such as:
+The system identifies the application associated with the email using multiple signals such as:
 
 * Company
-* Email domain
+* Sender domain
 * Job title
 * Job ID
 * Job URL
@@ -93,44 +87,256 @@ Match incoming recruitment emails to the correct job application using signals s
 * Application date
 * Message context
 
-### Automatic Timeline Updates
+### 6. Update Application Timeline
 
-Maintain a chronological recruitment timeline for each application.
+After identifying the recruitment event, the application timeline is automatically updated.
 
 Example:
 
 ```text
+Google — Software Engineer
+
+17 Aug
 Application Detected
-        ↓
+
+17 Aug
 Application Confirmed
-        ↓
+
+21 Aug
 Online Assessment
-        ↓
+
+25 Aug
 Assessment Completed
-        ↓
+
+28 Aug
 Technical Interview
-        ↓
+```
+
+### 7. Notify the User
+
+The system sends a notification when an important recruitment event is detected.
+
+Example:
+
+```text
+Google — Application Update
+
+Your application for Software Engineer
+has progressed to a Technical Interview.
+```
+
+## System Architecture
+
+```text
+                         USER
+                           |
+                           v
+                  +----------------+
+                  | React Frontend |
+                  +-------+--------+
+                          |
+                       REST API
+                          |
+                          v
+                  +----------------+
+                  | FastAPI Backend|
+                  +-------+--------+
+                          |
+          +---------------+----------------+
+          |               |                |
+          v               v                v
+    +-----------+   +-----------+   +-------------+
+    | PostgreSQL|   | Gmail API |   | Notification|
+    +-----------+   +-----+-----+   +-------------+
+                          |
+                          v
+                  +---------------+
+                  | Google Cloud  |
+                  |    Pub/Sub    |
+                  +-------+-------+
+                          |
+                          v
+                  +---------------+
+                  | Email          |
+                  | Processing     |
+                  +-------+--------+
+                          |
+              +-----------+-----------+
+              |                       |
+              v                       v
+       Rule-Based Analysis     AI Classifier
+              |                       |
+              +-----------+-----------+
+                          |
+                          v
+                  Application Matcher
+                          |
+                          v
+                  Status/Event Engine
+                          |
+                          v
+                     PostgreSQL
+                          |
+                          v
+                     Dashboard
+```
+
+## Application Lifecycle
+
+```text
+Application Detected
+        |
+        v
+Application Confirmed
+        |
+        v
+Shortlisted
+        |
+        v
+Online Assessment
+        |
+        v
+Assessment Completed
+        |
+        v
+Technical Interview
+        |
+        v
 HR Interview
-        ↓
-Offer / Rejection
+        |
+        v
+Final Interview
+        |
+        +------------+
+        |            |
+        v            v
+      Offer       Rejected
+```
+
+The actual application timeline depends on the recruitment process of each company.
+
+## Email Intelligence Pipeline
+
+```text
+Incoming Email
+      |
+      v
+Extract Email Metadata
+      |
+      v
+Recruitment Relevance Check
+      |
+      v
+Company / Role / Job Identification
+      |
+      v
+Application Matching
+      |
+      v
+Recruitment Event Classification
+      |
+      v
+Confidence Evaluation
+      |
+      v
+Application Status Update
+      |
+      v
+Notification
+```
+
+The system does not rely exclusively on AI. Deterministic rules are used for strong signals, while AI-assisted classification is used for ambiguous recruitment communications.
+
+## Database Design
+
+### Users
+
+Stores authenticated user information.
+
+```text
+users
+-------------------------
+id
+name
+email
+password_hash
+created_at
+```
+
+### Applications
+
+Stores detected job applications.
+
+```text
+applications
+-------------------------
+id
+user_id
+company
+role
+job_id
+job_url
+applied_at
+current_status
+source
+created_at
+```
+
+### Events
+
+Stores the complete recruitment history of an application.
+
+```text
+events
+-------------------------
+id
+application_id
+event_type
+event_time
+source
+confidence
+created_at
+```
+
+### Emails
+
+Stores relevant email metadata and classification results.
+
+```text
+emails
+-------------------------
+id
+user_id
+message_id
+sender
+subject
+received_at
+classification
+created_at
 ```
 
 ### Notifications
 
-Notify users when an important recruitment event is detected.
+Stores notifications generated for users.
 
-Example:
+```text
+notifications
+-------------------------
+id
+user_id
+application_id
+message
+read
+created_at
+```
 
-> Google — Software Engineer
-> Technical interview invitation detected.
-
-## Planned Technology Stack
+## Technology Stack
 
 ### Frontend
 
 * React
-* HTML
-* CSS
+* HTML5
+* CSS3
 * JavaScript / TypeScript
 
 ### Backend
@@ -143,158 +349,163 @@ Example:
 
 * PostgreSQL
 
-### Integrations
-
-* Gmail API
-* Google Cloud Pub/Sub
-* Browser Extension APIs
-* Supported job-portal integrations
-
 ### AI
 
 * LLM API
 * AI-assisted email classification
 * Entity extraction
-* Application matching
+* Recruitment event detection
 
-### Development Tools
+### Integrations
+
+* Gmail API
+* Google OAuth
+* Google Cloud Pub/Sub
+* Browser Extension APIs
+* Supported job-portal integrations
+
+### Development & Deployment
 
 * Git
 * GitHub
 * Docker
-* Postman
+* REST API testing tools
 
-## Planned Architecture
+## Security
 
-```text
-                         ┌─────────────┐
-                         │    User     │
-                         └──────┬──────┘
-                                │
-                                ▼
-                         React Frontend
-                                │
-                             REST API
-                                │
-                                ▼
-                         FastAPI Backend
-                                │
-              ┌─────────────────┼─────────────────┐
-              │                 │                 │
-              ▼                 ▼                 ▼
-        PostgreSQL          Gmail API      Browser Extension
-                                  │
-                                  ▼
-                           Google Pub/Sub
-                                  │
-                                  ▼
-                         Email Processing
-                                  │
-                                  ▼
-                       Rules + AI Classifier
-                                  │
-                                  ▼
-                       Application Matching
-                                  │
-                                  ▼
-                         Event Processing
-                                  │
-                    ┌─────────────┴─────────────┐
-                    ▼                           ▼
-              PostgreSQL                 Notifications
-                    │
-                    ▼
-                Dashboard
-```
+The application follows security principles for handling user and email-related information.
 
-## Application Event Model
+Key considerations include:
 
-Each application will maintain an event history rather than storing only the latest status.
+* OAuth-based Gmail authentication
+* Least-privilege access to user email data
+* Secure credential and token handling
+* Password hashing
+* User-level authorization
+* Application data isolation
+* Environment variables for secrets
+* Protection of API credentials
+* Validation of external input
+* Secure API communication
 
-Example:
+Sensitive credentials and OAuth tokens are never committed to the repository.
+
+## Example Workflow
 
 ```text
-Google
-Software Engineer
+User applies for:
 
-17 Aug 2026
-APPLICATION_DETECTED
-
-17 Aug 2026
-APPLICATION_CONFIRMED
-
-21 Aug 2026
-ONLINE_ASSESSMENT
-
-25 Aug 2026
-ASSESSMENT_COMPLETED
-
-28 Aug 2026
-TECHNICAL_INTERVIEW
+Company: Google
+Role: Software Engineer
+Job ID: SWE-2026-123
 ```
 
-## Planned Project Structure
+The system detects the application from a supported application source or confirmation email.
+
+Later, Gmail receives:
+
+```text
+Subject:
+Your Google application has progressed
+```
+
+The system processes the email and identifies:
+
+```text
+Company: Google
+Role: Software Engineer
+Event: Online Assessment
+Confidence: High
+```
+
+The application timeline is automatically updated:
+
+```text
+Applied
+   |
+   v
+Application Confirmed
+   |
+   v
+Online Assessment
+```
+
+The user receives:
+
+```text
+Google — Application Update
+
+Your Software Engineer application
+has progressed to an Online Assessment.
+```
+
+## Project Structure
 
 ```text
 Job-Application-Intelligence-Platform/
-│
+|
 ├── backend/
-│
+│   ├── app/
+│   ├── api/
+│   ├── models/
+│   ├── services/
+│   ├── database/
+│   └── tests/
+|
 ├── frontend/
-│
+│   ├── src/
+│   ├── components/
+│   ├── pages/
+│   └── services/
+|
 ├── browser-extension/
-│
-├── tests/
-│
+│   ├── manifest.json
+│   ├── background/
+│   ├── content/
+│   └── popup/
+|
 ├── docs/
-│
-├── README.md
+│   ├── architecture/
+│   └── api/
+|
+├── tests/
+|
 ├── .gitignore
+├── docker-compose.yml
+├── README.md
 └── LICENSE
 ```
 
-## Development Roadmap
-
-* [ ] Design application and event database schema
-* [ ] Build FastAPI backend
-* [ ] Implement user authentication
-* [ ] Build PostgreSQL integration
-* [ ] Develop application management APIs
-* [ ] Build React dashboard
-* [ ] Implement Gmail OAuth
-* [ ] Integrate Gmail API
-* [ ] Implement Gmail event processing
-* [ ] Integrate Google Cloud Pub/Sub
-* [ ] Develop recruitment email classification
-* [ ] Implement application-to-email matching
-* [ ] Build application event timeline
-* [ ] Implement browser extension
-* [ ] Add notification system
-* [ ] Add Docker configuration
-* [ ] Write automated tests
-* [ ] Deploy the application
-
-## Current Status
-
-The project is currently in the planning and development stage.
-
-The initial goal is to build a working end-to-end system that can automatically detect job applications, process recruitment emails, identify hiring-stage events, update application timelines, and notify users.
-
-## Future Improvements
-
-Potential future improvements include:
+## Future Enhancements
 
 * Additional job-portal integrations
-* Improved email classification
-* Better application matching
-* Interview calendar integration
-* Recruitment analytics
-* Application follow-up reminders
-* Resume-to-job matching
-* Job description analysis
-* Personalized interview preparation
-* Recruitment process analytics
+* More recruitment email providers
+* Calendar integration for interview scheduling
+* Advanced application analytics
+* Interview preparation recommendations
+* Automatic job-description extraction
+* Personalized application insights
+* Recruitment process duration analysis
+* Application follow-up recommendations
+* Advanced notification preferences
 
-## Disclaimer
+## Project Goals
 
-This project is intended as an educational and engineering project. Job-portal integrations will depend on the APIs, permissions, and technical capabilities made available by individual platforms.
+The project demonstrates practical implementation of:
+
+* Event-driven architecture
+* Backend API development
+* Database design
+* OAuth authentication
+* External API integration
+* Email processing
+* AI-assisted classification
+* Entity matching
+* State management
+* Automated notifications
+* Browser-extension development
+* Containerized application development
+
+## License
+
+MIT License
